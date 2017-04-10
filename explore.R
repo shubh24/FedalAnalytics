@@ -16,8 +16,7 @@ font <- list(
 df$date = as.Date(df$tourney_date, "%Y%m%d")
 df$year = lubridate::year(df$date)
 
-fedal_fed_won = df[df$winner_name == "Roger Federer" & df$loser_name == "Rafael Nadal",]
-fedal_rafa_won = df[df$winner_name == "Rafael Nadal" & df$loser_name == "Roger Federer",]
+fedal = df[(df$winner_name == "Roger Federer" & df$loser_name == "Rafael Nadal") | (df$winner_name == "Rafael Nadal" & df$loser_name == "Roger Federer"),]
 
 rafa = df[df$winner_name == "Rafael Nadal" | df$loser_name == "Rafael Nadal" ,]
 rafa$win = as.numeric(rafa$winner_id == 104745)
@@ -155,3 +154,40 @@ opponent_fav = function(athlete){
 }
 roger_opponent = opponent_fav(roger)
 rafa_opponent = opponent_fav(rafa)
+
+#fedal
+fedal$winner_name = droplevels(fedal$winner_name)
+table(fedal$winner_name)
+
+plot_fedal_surface = function(fedal_yoy_surface){
+  xaxis <- list(
+    title = "Year",
+    titlefont = font
+  )
+  
+  yaxis <- list(
+    title = "Number of Fedals",
+    titlefont = font
+  )
+  
+  p = plot_ly(fedal_yoy_surface, x = ~year, y = ~clay, type = "bar", color = I("maroon"), name = "clay") %>%
+    add_trace(y = ~grass, name = 'grass', color = I("light green") ) %>%
+    add_trace(y = ~hard, name = 'hard', color = I("sky blue")) %>%
+    layout(yaxis = yaxis, xaxis = xaxis, title = "Fedal clashes over the years",  barmode = 'stack')
+  
+  return (p)
+  
+}
+
+fedal_yoy_surface = as.matrix(table(fedal$year, fedal$surface))
+fedal_yoy_surface = data.frame(cbind(rownames(fedal_yoy_surface), fedal_yoy_surface[,3], fedal_yoy_surface[,4], fedal_yoy_surface[,5]))
+colnames(fedal_yoy_surface) = c("year", "clay", "grass", "hard")
+p = plot_fedal_surface(fedal_yoy_surface)
+plotly_IMAGE(p, format = "png", out_file = "./viz/fedal_surface_yoy")
+
+table(fedal$winner_name, fedal$surface)
+
+#outlier wins
+fedal[as.character(fedal$surface) == "Clay" & as.character(fedal$winner_name) == "Roger Federer", c("tourney_name", "year", "winner_name", "score")]
+fedal[as.character(fedal$surface) == "Grass" & as.character(fedal$winner_name) == "Rafael Nadal", c("tourney_name", "year", "winner_name", "score")]
+
