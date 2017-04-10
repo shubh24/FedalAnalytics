@@ -90,3 +90,45 @@ rafa_seed$athlete = "Rafael Nadal"
 athlete_seed = rbind(roger_seed, rafa_seed)
 p = plot_yoy_seed(athlete_seed)
 plotly_IMAGE(p, format = "png", out_file = "./viz/seeds_yoy")
+
+surface_sensitivity = function(athlete){
+  
+  athlete_surface_wins = aggregate(win ~ year + surface, data = athlete, FUN = sum)
+  
+  athlete$dummy = 1
+  athlete_surface_total = aggregate(dummy ~ year + surface, data = athlete, FUN = sum)
+  athlete_surface_yoy = merge(athlete_surface_wins, athlete_surface_total, by = c("year", "surface"))
+  
+  athlete_surface_yoy$sensitivity = round(100*as.numeric(athlete_surface_yoy$win/athlete_surface_yoy$dummy), 2)
+  
+  return(athlete_surface_yoy)
+}
+plot_surface_sensitivity = function(athlete_surface_sensitivity){
+  xaxis <- list(
+    title = "Year",
+    titlefont = font
+  )
+  
+  yaxis <- list(
+    title = "% Wins on Surface",
+    titlefont = font
+  )
+  
+  p = plot_ly(athlete_surface_sensitivity, x = ~year, y = ~sensitivity, type = "scatter", mode = "lines", colors = c("brown", "green", "blue"), color = ~surface) %>%
+    layout(yaxis = yaxis, xaxis = xaxis, title = "Win percentage over the years")
+  
+  return (p)
+  
+}
+
+roger_surface_sensitivity = surface_sensitivity(roger)
+roger_surface_sensitivity = roger_surface_sensitivity[!(as.character(roger_surface_sensitivity$surface) %in% c("", "Carpet")),]
+roger_surface_sensitivity$surface = as.character(roger_surface_sensitivity$surface)
+p = plot_surface_sensitivity(roger_surface_sensitivity)
+plotly_IMAGE(p, format = "png", out_file = "./viz/roger_surface_sensitivity")
+
+rafa_surface_sensitivity = surface_sensitivity(rafa)
+rafa_surface_sensitivity = rafa_surface_sensitivity[!(as.character(rafa_surface_sensitivity$surface) %in% c("", "Carpet")),]
+rafa_surface_sensitivity$surface = as.character(rafa_surface_sensitivity$surface)
+p = plot_surface_sensitivity(rafa_surface_sensitivity)
+plotly_IMAGE(p, format = "png", out_file = "./viz/rafa_surface_sensitivity")
