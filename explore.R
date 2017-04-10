@@ -32,7 +32,6 @@ yoy_win_ratio = function(athlete){
   
   return(athlete_yoy)
 }
-
 plot_yoy_win_ratio = function(athlete_win_ratio){
   xaxis <- list(
     title = "Year",
@@ -58,4 +57,36 @@ rafa_win_ratio$athlete = "Rafael Nadal"
 
 athlete_win_ratio = rbind(roger_win_ratio, rafa_win_ratio)
 p = plot_yoy_win_ratio(athlete_win_ratio)
-plotly_IMAGE(p, format = "png", out_file = "win_ratio_yoy")
+plotly_IMAGE(p, format = "png", out_file = "./viz/win_ratio_yoy")
+
+plot_yoy_seed = function(athlete_seed){
+  xaxis <- list(
+    title = "Year",
+    titlefont = font
+  )
+  
+  yaxis <- list(
+    title = "Seed",
+    titlefont = font
+  )
+  
+  p = plot_ly(athlete_seed, x = ~date, y = ~seed, type = "scatter", mode = "lines", color = ~athlete, colors = c("maroon", "green")) %>%
+    layout(yaxis = yaxis, xaxis = xaxis, title = "Athletes' seeds over the years")
+  
+  return (p)
+  
+}
+
+roger$seed = ifelse(roger$win == 1, roger$winner_seed, roger$loser_seed)
+year_end_date = aggregate(date ~ year, data = roger, FUN = max)
+roger_seed = unique(merge(year_end_date, roger[, c("date", "seed")], by = "date"))
+roger_seed$athlete = "Roger Federer"
+
+rafa$seed = ifelse(rafa$win == 1, rafa$winner_seed, rafa$loser_seed)
+year_end_date = aggregate(date ~ year, data = rafa, FUN = max)
+rafa_seed = unique(merge(year_end_date, rafa[, c("date", "seed")], by = "date"))
+rafa_seed$athlete = "Rafael Nadal"
+
+athlete_seed = rbind(roger_seed, rafa_seed)
+p = plot_yoy_seed(athlete_seed)
+plotly_IMAGE(p, format = "png", out_file = "./viz/seeds_yoy")
