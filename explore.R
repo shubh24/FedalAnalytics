@@ -132,3 +132,26 @@ rafa_surface_sensitivity = rafa_surface_sensitivity[!(as.character(rafa_surface_
 rafa_surface_sensitivity$surface = as.character(rafa_surface_sensitivity$surface)
 p = plot_surface_sensitivity(rafa_surface_sensitivity)
 plotly_IMAGE(p, format = "png", out_file = "./viz/rafa_surface_sensitivity")
+
+tourney_fav = function(athlete){
+  tourney_df = aggregate(win ~ tourney_name, data = athlete, FUN = sum)
+  tourney_df = merge(tourney_df, as.data.frame(table(athlete$tourney_name)), by.x = "tourney_name", by.y = "Var1")
+  tourney_df$win_ratio = round(100*as.numeric(tourney_df$win/tourney_df$Freq), 2)
+  
+  return(tourney_df[tourney_df$Freq > 10, c("tourney_name", "win_ratio")])
+}
+roger_tourney = tourney_fav(roger)
+rafa_tourney = tourney_fav(rafa)
+
+opponent_fav = function(athlete){
+  
+  athlete$opponent = ifelse(athlete$win == 1, as.character(athlete$loser_name), as.character(athlete$winner_name))
+  
+  athlete_df = aggregate(win ~ opponent, data = athlete, FUN = sum)
+  athlete_df = merge(athlete_df, as.data.frame(table(athlete$opponent)), by.x = "opponent", by.y = "Var1")
+  athlete_df$win_ratio = round(100*as.numeric(athlete_df$win/athlete_df$Freq), 2)
+  
+  return(athlete_df[athlete_df$Freq > 10, c("opponent", "win_ratio")])
+}
+roger_opponent = opponent_fav(roger)
+rafa_opponent = opponent_fav(rafa)
