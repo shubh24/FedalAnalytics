@@ -155,6 +155,51 @@ opponent_fav = function(athlete){
 roger_opponent = opponent_fav(roger)
 rafa_opponent = opponent_fav(rafa)
 
+#Dominance(% straight sets)
+straight_sets = function(athlete){
+  
+  athlete_straight_sets = aggregate(straight_sets_win ~ surface, data = athlete, FUN = sum)
+  
+  athlete$dummy = 1
+  athlete_wins_total = aggregate(dummy ~ surface, data = athlete[athlete$win == 1,], FUN = sum)
+  athlete_straight_sets = merge(athlete_straight_sets, athlete_wins_total, by = c("surface"))
+  
+  athlete_straight_sets$dominance = round(100*as.numeric(athlete_straight_sets$straight_sets_win/athlete_straight_sets$dummy), 2)
+  
+  return(athlete_straight_sets)
+}
+
+plot_fed_rafa_dominance = function(fed_rafa_dominance){
+  xaxis <- list(
+    title = "Surface",
+    titlefont = font
+  )
+  
+  yaxis <- list(
+    title = "Straight Set Win Percentage",
+    titlefont = font
+  )
+  
+  p = plot_ly(fed_rafa_dominance, x = ~surface, y = ~dominance.y, type = "bar", color = I("brown"), name = "Rafael Nadal") %>%
+    add_trace(y = ~dominance.x, name = 'Roger Federer', color = I("light green") ) %>%
+    layout(yaxis = yaxis, xaxis = xaxis, title = "Straight Set Win % -- Dominance",  barmode = 'grouped')
+  
+  return (p)
+  
+}
+
+roger$sets = sapply(gregexpr("-", roger$score), length)
+roger$straight_sets_win = as.numeric(((roger$sets <= 2 & as.numeric(roger$best_of == 3)) | (roger$sets <= 3  & as.numeric(roger$best_of == 5))) & roger$win == 1)
+roger_straight_sets = straight_sets(roger)[, c("surface", "dominance")]
+
+rafa$sets = sapply(gregexpr("-", rafa$score), length)
+rafa$straight_sets_win = as.numeric(((rafa$sets <= 2 & as.numeric(rafa$best_of == 3)) | (rafa$sets <= 3  & as.numeric(rafa$best_of == 5))) & rafa$win == 1)
+rafa_straight_sets = straight_sets(rafa)[, c("surface", "dominance")]
+
+fed_rafa_dominance = merge(roger_straight_sets, rafa_straight_sets, by = "surface")
+p = plot_fed_rafa_dominance(fed_rafa_dominance)
+plotly_IMAGE(p, format = "png", out_file = "./viz/fed_rafa_dominance")
+
 #fedal
 fedal$winner_name = droplevels(fedal$winner_name)
 table(fedal$winner_name)
