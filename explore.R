@@ -1,6 +1,7 @@
 library(stringr)
 library(lubridate)
 library(plotly)
+library(fmsb)
 
 df = read.csv("ATP.csv", stringsAsFactors = FALSE)
 
@@ -225,7 +226,7 @@ plot_fedal_surface = function(fedal_yoy_surface){
 }
 
 fedal_yoy_surface = as.matrix(table(fedal$year, fedal$surface))
-fedal_yoy_surface = data.frame(cbind(rownames(fedal_yoy_surface), fedal_yoy_surface[,3], fedal_yoy_surface[,4], fedal_yoy_surface[,5]))
+fedal_yoy_surface = data.frame(cbind(rownames(fedal_yoy_surface), fedal_yoy_surface[,1], fedal_yoy_surface[,2], fedal_yoy_surface[,3]))
 colnames(fedal_yoy_surface) = c("year", "clay", "grass", "hard")
 p = plot_fedal_surface(fedal_yoy_surface)
 plotly_IMAGE(p, format = "png", out_file = "./viz/fedal_surface_yoy")
@@ -258,8 +259,8 @@ serve_analysis = function(athlete){
 par(mfrow=c(1, 3))
 par(mar=c(1,1,1,1))
 
-max = c(10, 3, rep(100, 4))
-min = rep(0, 6)
+max_radar = c(10, 3, rep(100, 4))
+min_radar = rep(0, 6)
 colors_border=c( rgb(0,0,0,0.9), rgb(1,0,0,0.9))
 colors_in=c( rgb(0,0,0,0.2), rgb(1,0,0,0.3))
 
@@ -277,8 +278,10 @@ for (i in c("Clay", "Grass", "Hard")){
   
   athlete_radar = rbind(roger_radar, rafa_radar)
 
-  radarchart(rbind(max,min,athlete_radar), axistype=2 , pcol=colors_border , 
+  radarchart(rbind(max_radar, min_radar, athlete_radar), axistype=2 , pcol=colors_border , 
              pfcol=colors_in , plwd=4 , cglcol="grey", cglty=1,
              axislabcol="grey", caxislabels=seq(0,2000,5), cglwd=0.8, vlcex=0.6, title= paste0("Federer Vs Nadal Serves - ", i))
   
 }
+
+table(fedal$tourney_name[fedal$winner_name == "Rafael Nadal"]) #5 times in finals RG, 3 times in finals Monte Carlo
