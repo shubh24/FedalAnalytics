@@ -2,7 +2,7 @@ library(stringr)
 library(lubridate)
 library(plotly)
 
-df = read.csv("ATP.csv")
+df = read.csv("ATP.csv", stringsAsFactors = FALSE)
 
 Sys.setenv("plotly_username"="shubh24")
 Sys.setenv("plotly_api_key"="Jcgrh6kwxqOMZ3PerBKb")
@@ -236,3 +236,24 @@ table(fedal$winner_name, fedal$surface)
 fedal[as.character(fedal$surface) == "Clay" & as.character(fedal$winner_name) == "Roger Federer", c("tourney_name", "year", "winner_name", "score")]
 fedal[as.character(fedal$surface) == "Grass" & as.character(fedal$winner_name) == "Rafael Nadal", c("tourney_name", "year", "winner_name", "score")]
 
+serve_analysis = function(athlete){
+
+  athlete$aces = ifelse(athlete$win == 1, as.numeric(athlete$w_ace), as.numeric(athlete$l_ace))
+  athlete$df = ifelse(athlete$win == 1, as.numeric(athlete$w_df), as.numeric(athlete$l_df))
+  
+  athlete$first_serve_in = ifelse(athlete$win == 1, 100*as.numeric(athlete$w_1stIn)/as.numeric(athlete$w_svpt), 100*as.numeric(athlete$l_1stIn)/as.numeric(athlete$l_svpt))
+  athlete$second_serve_in = ifelse(athlete$win == 1, as.numeric(athlete$w_svpt) - as.numeric(athlete$w_1stIn) - as.numeric(athlete$w_df),  as.numeric(athlete$l_svpt) - as.numeric(athlete$l_1stIn) - as.numeric(athlete$l_df))
+  
+  athlete$first_serve_won = ifelse(athlete$win == 1, 100*as.numeric(athlete$w_1stWon)/as.numeric(athlete$w_1stIn), 100*as.numeric(athlete$l_1stWon)/as.numeric(athlete$l_1stIn))
+  athlete$second_serve_won = ifelse(athlete$win == 1, 100*as.numeric(athlete$w_2ndWon)/as.numeric(athlete$second_serve_in), 100*as.numeric(athlete$l_2ndWon)/as.numeric(athlete$second_serve_in))
+  
+  athlete$break_points_saved = ifelse(athlete$win == 1, 100*as.numeric(athlete$w_bpSaved)/as.numeric(athlete$w_bpFaced), 100*as.numeric(athlete$l_bpSaved)/as.numeric(athlete$l_bpFaced))
+  
+  athlete_serve = athlete[, c("aces", "df", "first_serve_in", "second_serve_in", "first_serve_won", "second_serve_won", "break_points_saved")]
+  max = rep(100, 7)
+  min = rep(0, 7)
+  
+  radarchart(rbind(max,min,athlete_serve[1,]), axistype=2 , pcol=rgb(0.2,0.5,0.5,0.9) , 
+             pfcol=rgb(0.2,0.5,0.5,0.5) , plwd=4 , cglcol="grey", cglty=1,
+             axislabcol="grey", caxislabels=seq(0,2000,5), cglwd=0.8, vlcex=0.6, title="radar chart")
+}
