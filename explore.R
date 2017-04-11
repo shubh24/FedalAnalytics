@@ -246,14 +246,39 @@ serve_analysis = function(athlete){
   
   athlete$first_serve_won = ifelse(athlete$win == 1, 100*as.numeric(athlete$w_1stWon)/as.numeric(athlete$w_1stIn), 100*as.numeric(athlete$l_1stWon)/as.numeric(athlete$l_1stIn))
   athlete$second_serve_won = ifelse(athlete$win == 1, 100*as.numeric(athlete$w_2ndWon)/as.numeric(athlete$second_serve_in), 100*as.numeric(athlete$l_2ndWon)/as.numeric(athlete$second_serve_in))
+
+  # athlete$second_serve_in = ifelse(athlete$win == 1, 100*as.numeric(athlete$second_serve_in)/as.numeric(athlete$w_svpt), 100*as.numeric(athlete$second_serve_in)/as.numeric(athlete$l_svpt))
   
   athlete$break_points_saved = ifelse(athlete$win == 1, 100*as.numeric(athlete$w_bpSaved)/as.numeric(athlete$w_bpFaced), 100*as.numeric(athlete$l_bpSaved)/as.numeric(athlete$l_bpFaced))
   
-  athlete_serve = athlete[, c("aces", "df", "first_serve_in", "second_serve_in", "first_serve_won", "second_serve_won", "break_points_saved")]
-  max = rep(100, 7)
-  min = rep(0, 7)
+  return(athlete)
   
-  radarchart(rbind(max,min,athlete_serve[1,]), axistype=2 , pcol=rgb(0.2,0.5,0.5,0.9) , 
-             pfcol=rgb(0.2,0.5,0.5,0.5) , plwd=4 , cglcol="grey", cglty=1,
-             axislabcol="grey", caxislabels=seq(0,2000,5), cglwd=0.8, vlcex=0.6, title="radar chart")
+}
+
+par(mfrow=c(1, 3))
+par(mar=c(1,1,1,1))
+
+max = c(10, 3, rep(100, 4))
+min = rep(0, 6)
+colors_border=c( rgb(0,0,0,0.9), rgb(1,0,0,0.9))
+colors_in=c( rgb(0,0,0,0.2), rgb(1,0,0,0.3))
+
+for (i in c("Clay", "Grass", "Hard")){
+  roger_serve = serve_analysis(roger[as.character(roger$surface) == i,])
+  rafa_serve = serve_analysis(rafa[as.character(rafa$surface) == i,])
+  
+  athlete = roger_serve
+  roger_radar = as.data.frame(cbind(mean(athlete$aces, na.rm = TRUE), mean(athlete$df, na.rm = TRUE), mean(athlete$first_serve_in, na.rm = TRUE), mean(athlete$first_serve_won, na.rm = TRUE), mean(athlete$second_serve_won, na.rm = TRUE), mean(athlete$break_points_saved, na.rm = TRUE)))
+  colnames(roger_radar) = c("aces", "double faults", "first serve %", "first serve points won %", "second serve points won %", "break points won %" )
+  
+  athlete = rafa_serve
+  rafa_radar = as.data.frame(cbind(mean(athlete$aces, na.rm = TRUE), mean(athlete$df, na.rm = TRUE), mean(athlete$first_serve_in, na.rm = TRUE), mean(athlete$first_serve_won, na.rm = TRUE), mean(athlete$second_serve_won, na.rm = TRUE), mean(athlete$break_points_saved, na.rm = TRUE)))
+  colnames(rafa_radar) = c("aces", "double faults", "first serve %", "first serve points won %", "second serve points won %", "break points won %" )
+  
+  athlete_radar = rbind(roger_radar, rafa_radar)
+
+  radarchart(rbind(max,min,athlete_radar), axistype=2 , pcol=colors_border , 
+             pfcol=colors_in , plwd=4 , cglcol="grey", cglty=1,
+             axislabcol="grey", caxislabels=seq(0,2000,5), cglwd=0.8, vlcex=0.6, title= paste0("Federer Vs Nadal Serves - ", i))
+  
 }
