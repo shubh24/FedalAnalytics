@@ -77,13 +77,13 @@ plot_yoy_seed = function(athlete_seed){
   
 }
 
-roger$seed = ifelse(roger$win == 1, roger$winner_seed, roger$loser_seed)
-year_end_date = aggregate(date ~ year, data = roger, FUN = max)
+roger$seed = ifelse(roger$win == 1, as.numeric(roger$winner_seed), as.numeric(roger$loser_seed))
+year_end_date = aggregate(date ~ year, data = roger[!is.na(roger$seed),], FUN = max)
 roger_seed = unique(merge(year_end_date, roger[, c("date", "seed")], by = "date"))
 roger_seed$athlete = "Roger Federer"
 
-rafa$seed = ifelse(rafa$win == 1, rafa$winner_seed, rafa$loser_seed)
-year_end_date = aggregate(date ~ year, data = rafa, FUN = max)
+rafa$seed = ifelse(rafa$win == 1, as.numeric(rafa$winner_seed), as.numeric(rafa$loser_seed))
+year_end_date = aggregate(date ~ year, data = rafa[!is.na(rafa$seed)], FUN = max)
 rafa_seed = unique(merge(year_end_date, rafa[, c("date", "seed")], by = "date"))
 rafa_seed$athlete = "Rafael Nadal"
 
@@ -115,7 +115,7 @@ plot_surface_sensitivity = function(athlete_surface_sensitivity){
   )
   
   p = plot_ly(athlete_surface_sensitivity, x = ~year, y = ~sensitivity, type = "scatter", mode = "lines", colors = c("brown", "green", "blue"), color = ~surface) %>%
-    layout(yaxis = yaxis, xaxis = xaxis, title = "Win percentage over the years")
+    layout(yaxis = yaxis, xaxis = xaxis, title = "Nadal - Win percentage over the years")
   
   return (p)
   
@@ -256,7 +256,7 @@ serve_analysis = function(athlete){
   
 }
 
-par(mfrow=c(1, 3))
+par(mfrow=c(3, 1))
 par(mar=c(1,1,1,1))
 
 max_radar = c(10, 3, rep(100, 4))
@@ -280,7 +280,7 @@ for (i in c("Clay", "Grass", "Hard")){
 
   radarchart(rbind(max_radar, min_radar, athlete_radar), axistype=2 , pcol=colors_border , 
              pfcol=colors_in , plwd=4 , cglcol="grey", cglty=1,
-             axislabcol="grey", caxislabels=seq(0,2000,5), cglwd=0.8, vlcex=0.6, title= paste0("Federer Vs Nadal Serves - ", i))
+             axislabcol="grey", caxislabels=seq(0,2000,5), cglwd=0.8, vlcex=0.6, title = i)
   
 }
 
