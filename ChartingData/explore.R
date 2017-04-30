@@ -170,4 +170,6 @@ for (i in 2:ncol(serve_players)){
   serve_players[, i] = as.numeric(serve_players[, i])
 }
 serve_players[is.na(serve_players)] = 0
-plot_serve_3w(serve_players[c(6, 8, 9),])
+serve_players = serve_players[c(1, 3, 4, 6, 8, 9),]
+serve_players$Direction = as.vector(c("5.Ad-Body", "4.Ad-T", "6.Ad-Wide", "2.Deuce-Body", "3.Deuce-T", "1.Deuce-Wide"))
+plot_serve_3w(serve_players[c(6,4,5,2,1,3),])
