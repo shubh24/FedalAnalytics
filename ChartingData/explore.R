@@ -297,3 +297,48 @@ plot_return_depth = function(return_player){
   
 }
 plot_return_depth(return_player)
+
+#Net Points Analysis
+net_rf = read.table("AusOpen/rogerfederer/net_points.csv", stringsAsFactors = F, sep = "\t")
+net_rf = net_rf[2:nrow(net_rf),]
+net_rf$player = "Roger Federer"
+
+net_rn = read.table("AusOpen/rafaelnadal/net_points.csv", stringsAsFactors = F, sep = "\t")
+net_rn = net_rn[2:nrow(net_rn),]
+net_rn$player = "Rafael Nadal"
+
+#Average Rally Length
+net_avg_rally = as.data.frame(rbind(cbind(net_rf[1, 9], net_rf[2, 9]), cbind(net_rn[1, 9], net_rn[2, 9])))
+net_avg_rally = cbind(net_avg_rally, c("Roger Federer", "Rafael Nadal"))
+colnames(net_avg_rally) = c("NetPoints - AverageRally", "NetApproaches - AverageRally", "Player")
+View(net_avg_rally[, c("Player", "NetPoints - AverageRally", "NetApproaches - AverageRally")])
+
+#Winning percentages
+net_rf[, 3:8] = non_brackets_to_vals(net_rf[, 3:8])
+net_rf = net_rf[c(1,2), c(10, 1, 3)]
+
+net_rn[, 3:8] = non_brackets_to_vals(net_rn[, 3:8])
+net_rn = net_rn[c(1,2), c(10, 1, 3)]
+
+net_player = rbind(net_rf, net_rn)
+net_player$V3 = as.numeric(net_player$V3)
+colnames(net_player) = c("player", "rally_type", "points_won")
+
+plot_net_points = function(net_player){
+  xaxis <- list(
+    title = "Rally Type",
+    titlefont = font
+  )
+  
+  yaxis <- list(
+    title = "Number of Points Won",
+    titlefont = font
+  )
+  
+  p = plot_ly(net_player, x = ~rally_type, y = ~points_won, type = "bar", color = ~player) %>%
+    layout(yaxis = yaxis, xaxis = xaxis, title = "Points won at the Net")
+  
+  return (p)
+  
+}
+plot_net_points(net_player)
