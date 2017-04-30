@@ -32,6 +32,17 @@ remove_percentage = function(df){
   return (df)
 }
 
+non_brackets_to_vals = function(df){
+  
+  for (i in 1:nrow(df)){
+    for (j in 1:ncol(df)){
+      df[i, j] = gsub("(.*)\\((.*)\\).*", "\\1", df[i,j])
+    }
+  }
+  
+  return (df)
+}
+
 plot_rally_length = function(rally_outcomes){
   xaxis <- list(
     title = "Rally Length",
@@ -173,3 +184,88 @@ serve_players[is.na(serve_players)] = 0
 serve_players = serve_players[c(1, 3, 4, 6, 8, 9),]
 serve_players$Direction = as.vector(c("5.Ad-Body", "4.Ad-T", "6.Ad-Wide", "2.Deuce-Body", "3.Deuce-T", "1.Deuce-Wide"))
 plot_serve_3w(serve_players[c(6,4,5,2,1,3),])
+
+#Return Analysis
+return_rf = read.table("AusOpen/rogerfederer/return_outcomes.csv", stringsAsFactors = F, sep = "\t")
+return_rf = return_rf[2:nrow(return_rf),]
+return_rf$player = "Roger Federer"
+
+return_rn = read.table("AusOpen/rafaelnadal/return_outcomes.csv", stringsAsFactors = F, sep = "\t")
+return_rn = return_rn[2:nrow(return_rn),]
+return_rn$player = "Rafael Nadal"
+
+return_avg_rally = as.data.frame(rbind(cbind(return_rf[2, 9], return_rf[3, 9]), cbind(return_rn[2, 9], return_rn[3, 9])))
+return_avg_rally = cbind(return_avg_rally, c("Rafael Nadal", "Roger Federer"))
+colnames(return_avg_rally) = c("1stServe Rally Length", "2ndServe Rally Length", "Server")
+View(return_avg_rally[c(2, 1), c("Server", "1stServe Rally Length", "2ndServe Rally Length")])
+
+return_shot = merge(return_rf[c(7,8,9,10), c(1,3)], return_rn[c(7,8,9,10), c(1,3)], by = "V1")
+colnames(return_shot) = c("Return Shot", "Federer", "Nadal")
+return_shot[, c(2,3)] = brackets_to_vals(as.data.frame(return_shot[, c(2,3)]))
+for (i in 2:ncol(return_shot)){
+  return_shot[, i] = as.numeric(return_shot[, i])
+}
+return_shot$`Return Shot` = as.vector(c("2.Backhand", "3.Flat/Topspin", "1.Forehand", "4.Slice/Chip"))
+plot_return_win_percentage = function(return_shot){
+  xaxis <- list(
+    title = "Return Shot Type",
+    titlefont = font
+  )
+  
+  yaxis <- list(
+    title = "Percentage Points Won by Receiver",
+    titlefont = font
+  )
+  
+  p = plot_ly(return_shot, x = ~`Return Shot`, y = ~Federer, type = "bar", name = "Roger Federer") %>%
+    add_trace(y = ~Nadal,name="Rafael Nadal") %>%
+    layout(yaxis = yaxis, xaxis = xaxis, title = "How well do they return?")
+  
+  return (p)
+  
+}
+plot_return_win_percentage(return_shot)
+
+#Return Position 
+return_position = merge(return_rf[c(13,14,15), c(1,3)], return_rn[c(13,14,15), c(1,3)], by = "V1")
+colnames(return_position) = c("Return Position", "Federer", "Nadal")
+return_position[, c(2,3)] = brackets_to_vals(as.data.frame(return_position[, c(2,3)]))
+for (i in 2:ncol(return_position)){
+  return_position[, i] = as.numeric(return_position[, i])
+}
+return_position$`Return position` = as.vector(c("2.Body Serves", "3.T Serves", "1.Wide Serves"))
+plot_return_win_percentage = function(return_position){
+  xaxis <- list(
+    title = "Return position Type",
+    titlefont = font
+  )
+  
+  yaxis <- list(
+    title = "Percentage Points Won by Receiver",
+    titlefont = font
+  )
+  
+  p = plot_ly(return_position, x = ~`Return position`, y = ~Federer, type = "bar", name = "Roger Federer") %>%
+    add_trace(y = ~Nadal,name="Rafael Nadal") %>%
+    layout(yaxis = yaxis, xaxis = xaxis, title = "From where is the return good?", annotations = list(x = ~`Return position`, y = ~Nadal, text = as.vector(c("24/47   3/6", "17/45   19/64", "15/56   22/65")),  xanchor = 'center', yanchor = 'bottom', showarrow = FALSE))
+
+  return (p)
+  
+}
+plot_return_win_percentage(return_position)
+
+#Depth
+return_rf = read.table("AusOpen/rogerfederer/return_depth.csv", stringsAsFactors = F, sep = "\t")
+return_rf = return_rf[2:nrow(return_rf),]
+return_rf = return_rf[c(4,5,6,7), c(1,3,4)]
+return_rf$player = "Federer"
+
+return_rn = read.table("AusOpen/rafaelnadal/return_depth.csv", stringsAsFactors = F, sep = "\t")
+return_rn = return_rn[2:nrow(return_rn),]
+return_rn = return_rn[c(4,5,6,7), c(1,3,4)]
+return_rn$player = "Nadal"
+
+return_player = rbind(return_rf, return_rn)
+return_player[, c(2:3)] = non_brackets_to_vals(return_player[,c(2:3)])
+colnames(return_player) = c("Return Shot", "Short", "Deep",)
+return_player$`Return Shot` = as.vector(c("2.Backhand", "3.Flat/Topspin", "1.Forehand", "4.Slice/Chip"))
