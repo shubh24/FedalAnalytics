@@ -267,5 +267,33 @@ return_rn$player = "Nadal"
 
 return_player = rbind(return_rf, return_rn)
 return_player[, c(2:3)] = non_brackets_to_vals(return_player[,c(2:3)])
-colnames(return_player) = c("Return Shot", "Short", "Deep",)
-return_player$`Return Shot` = as.vector(c("2.Backhand", "3.Flat/Topspin", "1.Forehand", "4.Slice/Chip"))
+colnames(return_player) = c("Return Shot", "Short", "Deep", "player")
+return_player$`Return Shot` = as.vector(c("1.Forehand", "2.Backhand", "3.Flat/Topspin", "4.Slice/Chip", "1.Forehand", "2.Backhand", "3.Flat/Topspin", "4.Slice/Chip"))
+for (i in 2:3){
+  return_player[, i] = as.numeric(return_player[, i])
+}
+
+plot_return_depth = function(return_player){
+  xaxis <- list(
+    title = "Return Shot",
+    titlefont = font
+  )
+  
+  yaxis <- list(
+    title = "Number of points",
+    titlefont = font,
+    range = c(0, 100)
+  )
+  
+  p1 = plot_ly(return_player[return_player$player == "Federer",], x = ~`Return Shot`, y = ~Short, type = "bar", name = "Short Return - Federer") %>%
+    add_trace(y = ~Deep, name="Deep Return - Federer") %>%
+    layout(yaxis = yaxis, xaxis = xaxis, barmode = "stack", title = "Which returns are deep?")
+
+  p2 = plot_ly(return_player[return_player$player == "Nadal",], x = ~`Return Shot`, y = ~Short, type = "bar", name = "Short Return - Nadal") %>%
+    add_trace(y = ~Deep, name="Deep Return - Nadal") %>%
+    layout(yaxis = yaxis, xaxis = xaxis, barmode = "stack", title = "Which returns are deep?")
+  
+  return (subplot(p1, p2))
+  
+}
+plot_return_depth(return_player)
