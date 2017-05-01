@@ -527,3 +527,25 @@ plot_shot_score = function(specific_shot){
 }
 plot_shot_score(specific_shot)
 
+#Dominance Analysis
+dom = read.csv("../dominance.csv", stringsAsFactors = FALSE)
+
+plot_dominance_score = function(dom){
+  xaxis <- list(
+    title = "Game Count",
+    titlefont = font
+  )
+  
+  yaxis <- list(
+    title = "Dominance Score",
+    titlefont = font
+  )
+  
+  p = plot_ly(dom, x = ~game_count, y = ~federer_dominance, name = "Roger Federer", type = "scatter", mode = "lines") %>%
+    add_trace(y = ~nadal_dominance, name = "Rafael Nadal") %>%
+    layout(yaxis = yaxis, xaxis = xaxis, title = "Did you cruise through, or just scrape through?")
+  
+  return (p)
+  
+}
+plot_dominance_score(dom)
