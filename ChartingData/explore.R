@@ -481,3 +481,48 @@ plot_rally_length = function(direction_rf, direction_rn){
   
 }
 plot_rally_length(direction_rf, direction_rn)
+
+#Shot Score
+specific_shot_rf = read.table("AusOpen/rogerfederer/shot_direction_2.csv", stringsAsFactors = F, sep = "\t")
+specific_shot_rf = specific_shot_rf[2:nrow(specific_shot_rf),]
+specific_shot_rf[, 3:8] = non_brackets_to_vals(specific_shot_rf[, 3:8])
+specific_shot_rf = specific_shot_rf[1:9, c(1, 3:6)]
+colnames(specific_shot_rf) = c("Shot", "Total", "Winners", "InducedError", "UnforcedError")
+for (i in 2:ncol(specific_shot_rf)){
+  specific_shot_rf[, i] = as.numeric(specific_shot_rf[, i])
+}
+specific_shot_rf$shot_score = (specific_shot_rf$Winners + specific_shot_rf$InducedError - specific_shot_rf$UnforcedError)/specific_shot_rf$Total
+
+specific_shot_rn = read.table("AusOpen/rafaelnadal/shot_direction_2.csv", stringsAsFactors = F, sep = "\t")
+specific_shot_rn = specific_shot_rn[2:nrow(specific_shot_rn),]
+specific_shot_rn[, 3:8] = non_brackets_to_vals(specific_shot_rn[, 3:8])
+specific_shot_rn = specific_shot_rn[1:9, c(1, 3:6)]
+colnames(specific_shot_rn) = c("Shot", "Total", "Winners", "InducedError", "UnforcedError")
+for (i in 2:ncol(specific_shot_rn)){
+  specific_shot_rn[, i] = as.numeric(specific_shot_rn[, i])
+}
+specific_shot_rn$shot_score = (specific_shot_rn$Winners + specific_shot_rn$InducedError - specific_shot_rn$UnforcedError)/specific_shot_rn$Total
+specific_shot_rn[is.na(specific_shot_rn)] = 0
+
+specific_shot = merge(specific_shot_rf[, c(1, 6)], specific_shot_rn[, c(1, 6)], by = "Shot")
+specific_shot$Shot = as.vector(c("6.BH crosscourt", "7.BH middle", "8.BH down the line", "9.BH inside-out", "1.FH crosscourt", "2.FH middle", "3.FH down the line", "4.FH inside-in", "5.FH inside-out"))
+
+plot_shot_score = function(specific_shot){
+  xaxis <- list(
+    title = "Finishing Shot",
+    titlefont = font
+  )
+  
+  yaxis <- list(
+    title = "Shot Score",
+    titlefont = font
+  )
+  
+  p = plot_ly(specific_shot, x = ~Shot, y = ~shot_score.x, name = "Roger Federer", type = "bar") %>%
+    add_trace(y = ~shot_score.y, name = "Rafael Nadal") %>%
+    layout(yaxis = yaxis, xaxis = xaxis, title = "How effective are your finishing shots?")
+  
+  return (p)
+  
+}
+plot_shot_score(specific_shot)
