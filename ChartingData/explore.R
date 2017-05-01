@@ -1,4 +1,5 @@
 library(plotly)
+library(dplyr)
 
 Sys.setenv("plotly_username"="shubh24")
 Sys.setenv("plotly_api_key"="Jcgrh6kwxqOMZ3PerBKb")
@@ -342,3 +343,94 @@ plot_net_points = function(net_player){
   
 }
 plot_net_points(net_player)
+
+#Shot Types
+shot_rf = read.table("AusOpen/rogerfederer/shot_types.csv", stringsAsFactors = F, sep = "\t")
+shot_rf = shot_rf[2:nrow(shot_rf),]
+shot_vol_rf = shot_rf[14:25, c(1, 2)]
+
+shot_rn = read.table("AusOpen/rafaelnadal/shot_types.csv", stringsAsFactors = F, sep = "\t")
+shot_rn = shot_rn[2:nrow(shot_rn),]
+shot_vol_rn = shot_rn[12:19, c(1, 2)]
+
+shot_vol = left_join(shot_vol_rf, shot_vol_rn, by = "V1")
+colnames(shot_vol) = c("Shot Type", "Federer", "Nadal")
+shot_vol$Federer = as.numeric(shot_vol$Federer)
+shot_vol$Nadal = as.numeric(shot_vol$Nadal)
+shot_vol[is.na(shot_vol)] = 0
+shot_vol$`Shot Type` = as.vector(c("1.Forehand", "2.Backhand", "3.FH Slice", "4.BH Slice", "5.FH Volley", "6.BH Volley", "7.FH Drop", "8.BH Drop", "9.FH Lob", "BH Lob", "Smash", "Swinging Volley"))
+
+plot_shot_type = function(shot_vol){
+  xaxis <- list(
+    title = "Shot Type",
+    titlefont = font
+  )
+  
+  yaxis <- list(
+    title = "Number of Shots",
+    titlefont = font
+  )
+  
+  p = plot_ly(shot_vol, x = ~`Shot Type`, y = ~Federer, name = "Roger Federer", type = "bar") %>%
+    add_trace(y = ~Nadal, name="Rafel Nadal") %>%
+    layout(yaxis = yaxis, xaxis = xaxis, title = "Which shot do you play?")
+  
+  return (p)
+  
+}
+plot_shot_type(shot_vol)
+
+#Ground Strokes Pie Charts
+shot_rf = shot_rf[c(4, 5), c(1, 3, 4, 5, 6)]
+shot_rf[, 2:ncol(shot_rf)] = non_brackets_to_vals(shot_rf[, 2:ncol(shot_rf)])
+for (i in 2:ncol(shot_rf)){
+  shot_rf[, i] = as.numeric(shot_rf[, i])
+}
+shot_rf$V4 = round(100*(shot_rf$V4/shot_rf$V3), 2)
+shot_rf$V5 = round(100*(shot_rf$V5/shot_rf$V3), 2)
+shot_rf$V6 = round(100*(shot_rf$V6/shot_rf$V3), 2)
+colnames(shot_rf) = c("Shot Type", "Pts", "Winners", "Induced Forced Errors", "Forced Errors")
+shot_rf$player = "Federer"
+shot_rf$Pts = NULL
+
+shot_rn = shot_rn[c(4, 5), c(1, 3, 4, 5, 6)]
+shot_rn[, 2:ncol(shot_rn)] = non_brackets_to_vals(shot_rn[, 2:ncol(shot_rn)])
+for (i in 2:ncol(shot_rn)){
+  shot_rn[, i] = as.numeric(shot_rn[, i])
+}
+shot_rn$V4 = round(100*(shot_rn$V4/shot_rn$V3), 2)
+shot_rn$V5 = round(100*(shot_rn$V5/shot_rn$V3), 2)
+shot_rn$V6 = round(100*(shot_rn$V6/shot_rn$V3), 2)
+colnames(shot_rn) = c("Shot Type", "Pts", "Winners", "Induced Forced Errors", "Forced Errors")
+shot_rn$player = "Nadal"
+shot_rn$Pts = NULL
+
+shot_player = rbind(shot_rf, shot_rn)
+
+plot_shot_type = function(shot_vol){
+  xaxis <- list(
+    title = "Federer                                                 Nadal",
+    titlefont = font,
+    showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE
+  )
+  
+  yaxis <- list(
+    title = "Number of Shots",
+    titlefont = font,
+    showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE
+  )
+  
+  shot_player = melt(shot_player, id.vars = c("Shot Type", "player"))
+  shot_player$variable = as.character(shot_player$variable)
+
+  p = plot_ly() %>%
+  add_pie(data = shot_player[shot_player$`Shot Type` == "BH GS (top/flt/slc)" & shot_player$player == "Federer",],
+                  values = ~value, labels = ~variable, name = "Federer", domain = list(x = c(0, 0.48), y = c(0, 1))) %>%
+  add_pie(data = shot_player[shot_player$`Shot Type` == "BH GS (top/flt/slc)" & shot_player$player == "Nadal",], 
+                  values = ~value, labels = ~variable, domain = list(x = c(0.52, 1), y = c(0, 1))) %>%
+  layout(yaxis = yaxis, xaxis = xaxis, title = "Which shots end the rally? -- Backhand Topspin/Flat/Slice", showlegend = TRUE) 
+  
+  return (p)
+  
+}
+plot_shot_type(shot_player)
