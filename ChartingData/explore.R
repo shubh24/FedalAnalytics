@@ -434,3 +434,50 @@ plot_shot_type = function(shot_vol){
   
 }
 plot_shot_type(shot_player)
+
+#Shot Direction -- Basics
+direction_rf = read.table("AusOpen/rogerfederer/shot_direction_1.csv", stringsAsFactors = F, sep = "\t")
+direction_rf = direction_rf[2:nrow(direction_rf),]
+direction_rf[, 2:6] = brackets_to_vals(direction_rf[, 2:6])
+direction_rf = as.data.frame(t(direction_rf))
+direction_rf = direction_rf[2:6, 2:3]
+direction_rf$shot_direction = as.vector(c("Crosscourt","Down middle","Down the line","Inside-out","Inside-in"))
+colnames(direction_rf) = c("Forehand", "Backhand", "Shot Direction")
+direction_rf$Forehand = as.numeric(as.character(direction_rf$Forehand))
+direction_rf$Backhand = as.numeric(as.character(direction_rf$Backhand))
+
+direction_rn = read.table("AusOpen/rafaelnadal/shot_direction_1.csv", stringsAsFactors = F, sep = "\t")
+direction_rn = direction_rn[2:nrow(direction_rn),]
+direction_rn[, 2:6] = brackets_to_vals(direction_rn[, 2:6])
+direction_rn = as.data.frame(t(direction_rn))
+direction_rn = direction_rn[2:6, 2:3]
+direction_rn$shot_direction = as.vector(c("Crosscourt","Down middle","Down the line","Inside-out","Inside-in"))
+colnames(direction_rn) = c("Forehand", "Backhand", "Shot Direction")
+direction_rn$player = "Nadal"
+direction_rn$Forehand = as.numeric(as.character(direction_rn$Forehand))
+direction_rn$Backhand = as.numeric(as.character(direction_rn$Backhand))
+
+plot_rally_length = function(direction_rf, direction_rn){
+  xaxis <- list(
+    title = "Shot Direction",
+    titlefont = font
+  )
+  
+  yaxis <- list(
+    title = "Percentage of FH/BH in Direction",
+    titlefont = font,
+    range = c(0, 100)
+  )
+  
+  p1 = plot_ly(direction_rf, x = ~`Shot Direction`, y = ~Forehand, name = "Federer Forehand", type = "bar") %>%
+    add_trace(y = ~Backhand, name = "Federer Backhand") %>%
+    layout(yaxis = yaxis, xaxis = xaxis)
+  
+  p2 = plot_ly(direction_rn, x = ~`Shot Direction`, y = ~Forehand, name = "Nadal Forehand", type = "bar") %>%
+    add_trace(y = ~Backhand, name = "Nadal Backhand") %>%
+    layout(yaxis = yaxis, xaxis = xaxis, title = "Shot Directions (Federer on Left, Nadal on Right)")
+  
+  return (subplot(p1, p2))
+  
+}
+plot_rally_length(direction_rf, direction_rn)
