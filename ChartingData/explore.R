@@ -528,7 +528,7 @@ plot_shot_score = function(specific_shot){
 plot_shot_score(specific_shot)
 
 #Dominance Analysis
-dom = read.csv("../dominance.csv", stringsAsFactors = FALSE)
+dom = read.csv("../dominance_pressure.csv", stringsAsFactors = FALSE)
 
 plot_dominance_score = function(dom){
   xaxis <- list(
@@ -549,3 +549,31 @@ plot_dominance_score = function(dom){
   
 }
 plot_dominance_score(dom)
+
+plot_pressure_score = function(pressure_agg){
+  xaxis <- list(
+    title = "Set Count",
+    titlefont = font
+  )
+  
+  yaxis <- list(
+    title = "Pressure Score",
+    titlefont = font,
+    range = c(0, 15)
+  )
+  
+  p1 = plot_ly(pressure_agg[pressure_agg$server == "Roger Federer",], x = ~set_count, y = ~pressure_points_won, name = "Pressure points Saved -- Federer", type = "scatter", mode = "lines+markers") %>%
+    add_trace(y = ~pressure_points, name = "Pressure points -- Federer") %>%
+    layout(yaxis = yaxis, xaxis = xaxis, barmode = "stack", title = "How well do you play under pressure? -- Roger Federer")
+
+  p2 = plot_ly(pressure_agg[pressure_agg$server == "Rafael Nadal",], x = ~set_count, y = ~pressure_points_won, name = "Pressure points Saved -- Nadal", type = "scatter", mode = "lines+markers") %>%
+    add_trace(y = ~pressure_points, name = "Pressure points -- Nadal") %>%
+    layout(yaxis = yaxis, xaxis = xaxis, barmode = "stack", title = "Under-Pressure Game (Roger on left, Rafa on right)")
+  
+  return (subplot(p1, p2))
+  
+}
+
+pressure_agg = aggregate(cbind(pressure_points, pressure_points_won) ~ set_count+server, data = dom, FUN = sum)
+plot_pressure_score(pressure_agg)
+
