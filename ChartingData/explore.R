@@ -52,14 +52,19 @@ plot_rally_length = function(rally_outcomes){
   
   yaxis <- list(
     title = "Win Percentage",
-    titlefont = font
+    titlefont = font,
+    range = c(0,100)
   )
-  
-  p = plot_ly(rally_outcomes, x = ~rally_length, y = ~rn_fe, name = "Rafael Nadal Forced Errors", type = "scatter", mode = "lines") %>%
-        add_trace(y = ~rf_fe,name="Roger Federer Forced Errors") %>%
+
+  p1 = plot_ly(rally_outcomes, x = ~rally_length, y = ~rf_fe, name = "Roger Federer induced Forced Errors from Nadal", type = "scatter", mode = "lines+markers") %>%
+    add_trace(y = ~rf_winners,name="Roger Federer Winners") %>%
     layout(yaxis = yaxis, xaxis = xaxis, title = "Win percentage against Rally Length")
   
-  return (p)
+  p2 = plot_ly(rally_outcomes, x = ~rally_length, y = ~rn_fe, name = "Rafael Nadal induced Forced Errors from Federer", type = "scatter", mode = "lines+markers") %>%
+        add_trace(y = ~rn_winners,name="Rafael Nadal Winners") %>%
+    layout(yaxis = yaxis, xaxis = xaxis, title = "Win percentage against Rally Length(Federer on left, Nadal on right)")
+  
+  return (subplot(p1, p2))
   
 }
 
@@ -85,6 +90,10 @@ serve_overview[, 3:ncol(serve_overview)] = brackets_to_vals(serve_overview[, 3:n
 serve_matrix = data.frame("Player" = c("Rafael Nadal", "Roger Federer"), "FirstServe.WinPercentage" = c(serve_overview[2,3], serve_overview[5,3]), "FirstServe.WinPercentage" = c(serve_overview[3,3], serve_overview[6,3]))
 
 plot_serve_direction = function(serve_overview_direction){
+  
+  serve_overview_direction_deuce = serve_overview_direction[, c("player", "deuce_wide", "deuce_body", "deuce_t")]
+  serve_overview_direction_ad = serve_overview_direction[, c("player", "ad_t", "ad_body", "ad_wide")]
+  
   xaxis <- list(
     title = "Serve Direction (in the natural order)",
     titlefont = font
@@ -92,16 +101,23 @@ plot_serve_direction = function(serve_overview_direction){
   
   yaxis <- list(
     title = "Percentage of Serves",
-    titlefont = font
+    titlefont = font,
+    range = c(0, 100)
   )
   
-  serve_overview_direction$player = as.vector(c("Rafael Nadal", "Roger Federer")) 
-  serve_overview_direction = melt(serve_overview_direction, id.vars = "player")
-  
-  p = plot_ly(serve_overview_direction, x = ~variable, y = ~value, type = "scatter", mode = "lines+markers", color = ~player) %>%
-    layout(yaxis = yaxis, xaxis = xaxis, title = "Where did they serve? -- Advantage Court")
+  serve_overview_direction_deuce$player = as.vector(c("Rafael Nadal", "Roger Federer")) 
+  serve_overview_direction_deuce = melt(serve_overview_direction_deuce, id.vars = "player")
 
-  return (p)
+  serve_overview_direction_ad$player = as.vector(c("Rafael Nadal", "Roger Federer")) 
+  serve_overview_direction_ad = melt(serve_overview_direction_ad, id.vars = "player")
+  
+  p1 = plot_ly(serve_overview_direction_deuce, x = ~variable, y = ~value, type = "scatter", mode = "lines+markers", color = ~player) %>%
+    layout(yaxis = yaxis, xaxis = xaxis, title = "Where did they serve?")
+  
+  p2 = plot_ly(serve_overview_direction_ad, x = ~variable, y = ~value, type = "scatter", mode = "lines+markers", color = ~player) %>%
+    layout(yaxis = yaxis, xaxis = xaxis, title = "Where did they serve?")
+
+  return (subplot(p1, p2))
   
 }
 
@@ -112,8 +128,9 @@ serve_overview_direction[, 2:ncol(serve_overview_direction)] = brackets_to_vals(
 for (i in 2:7){
   serve_overview_direction[, i] = as.numeric(serve_overview_direction[, i])
 }
-plot_serve_direction(serve_overview_direction[c(1, 4), c("player", "deuce_wide", "deuce_body", "deuce_t")])
-plot_serve_direction(serve_overview_direction[c(1, 4), c("player", "ad_t", "ad_body", "ad_wide")])
+plot_serve_direction(serve_overview_direction[c(1, 4), ])
+# plot_serve_direction(serve_overview_direction[c(1, 4), c("player", "deuce_wide", "deuce_body", "deuce_t")])
+# plot_serve_direction(serve_overview_direction[c(1, 4), c("player", "ad_t", "ad_body", "ad_wide")])
 
 plot_serve_influence = function(serve_influence){
   xaxis <- list(
@@ -123,29 +140,41 @@ plot_serve_influence = function(serve_influence){
   
   yaxis <- list(
     title = "Percentage Points Won by Server",
-    titlefont = font
+    titlefont = font,
+    range = c(0, 100)
   )
   
-  serve_influence$pts = NULL
-  serve_influence$player = as.vector(c("Rafael Nadal", "Roger Federer")) 
-  serve_influence = melt(serve_influence, id.vars = "player")
+  serve_influence_first = serve_influence[c(1, 3), ]
+  serve_influence_second = serve_influence[c(2, 4), ]
   
-  p = plot_ly(serve_influence, x = ~variable, y = ~value, type = "scatter", mode = "lines+markers", color = ~player) %>%
-    layout(yaxis = yaxis, xaxis = xaxis, title = "How long a rally can they handle? -- Second Serve")
+  serve_influence_first$pts = NULL
+  serve_influence_first$player = as.vector(c("Rafael Nadal", "Roger Federer")) 
+  serve_influence_first = melt(serve_influence_first, id.vars = "player")
   
-  return (p)
+  serve_influence_second$pts = NULL
+  serve_influence_second$player = as.vector(c("Rafael Nadal", "Roger Federer")) 
+  serve_influence_second = melt(serve_influence_second, id.vars = "player")
+  
+  p1 = plot_ly(serve_influence_first, x = ~variable, y = ~value, type = "scatter", mode = "lines+markers", color = ~player) %>%
+    layout(yaxis = yaxis, xaxis = xaxis, title = "How long a rally can they handle?")
+
+  p2 = plot_ly(serve_influence_second, x = ~variable, y = ~value, type = "scatter", mode = "lines+markers", color = ~player) %>%
+    layout(yaxis = yaxis, xaxis = xaxis, title = "How long a rally can they handle? (First Serve on left, Second Serve on right)")
+  
+  return (subplot(p1, p2))
   
 }
 
 serve_influence = read.table("AusOpen/serve_influence.csv", stringsAsFactors = FALSE, sep = "\t")
-colnames(serve_influence) = c("player", "pts", "1 point", "2 point", "3 point", "4 point", "5 point", "6 point", "7 point", "8 point", "9 point", "10 point")
+colnames(serve_influence) = c("player", "pts", "1 point", "2 points", "3 points", "4 points", "5 points", "6 points", "7 points", "8 points", "9 points", "10+ points")
 serve_influence = serve_influence[2:nrow(serve_influence),]
 serve_influence[, 2:ncol(serve_influence)] = remove_percentage(serve_influence[, 2:ncol(serve_influence)])
 for (i in 2:ncol(serve_influence)){
-  serve_overview_direction[, i] = as.numeric(serve_overview_direction[, i])
+  serve_influence[, i] = as.numeric(serve_influence[, i])
 }
-plot_serve_influence(serve_influence[c(1, 3), ])
-plot_serve_influence(serve_influence[c(2, 4), ])
+plot_serve_influence(serve_influence)
+# plot_serve_influence(serve_influence[c(1, 3), ])
+# plot_serve_influence(serve_influence[c(2, 4), ])
 
 #Serve Breakdown -- %3W for both players
 serve_rf = read.table("AusOpen/rogerfederer/serve_breakdown_2.csv", stringsAsFactors = F, sep = "\t")
